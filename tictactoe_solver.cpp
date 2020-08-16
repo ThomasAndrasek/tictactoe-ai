@@ -9,7 +9,7 @@
  * 
  * Author: Thomas Andrasek
  * 
- * Last updated: 2020/08/14
+ * Last updated: 2020/08/16
  * 
  * ***************************************************************************/
 
@@ -283,8 +283,7 @@ void tictactoeai::CalcMaxChild(Node* root, bool top_root,
   if (root)
   {
     // Checks if no more moves can be made
-    if (move_depth == 0 || root->board_data_->CheckForWin().first ||
-       (*root->board_data_).get_empty_spaces() == 0)
+    if (move_depth == 0 || root->board_data_->IsGameOver().first)
     {
       root->game_score_ = CalcGameScore(*root->board_data_);
     }
@@ -351,8 +350,7 @@ void tictactoeai::CalcMinChild(Node* root, bool top_root,
   if (root)
   {
     // Checks if no more moves can be made
-    if (move_depth == 0 || root->board_data_->CheckForWin().first ||
-       (*root->board_data_).get_empty_spaces() == 0)
+    if (move_depth == 0 || root->board_data_->IsGameOver().first)
     {
       root->game_score_ = CalcGameScore(*root->board_data_);
     }

@@ -5,7 +5,7 @@
  * 
  * Author: Thomas Andrasek
  * 
- * Last Updated: 2020/08/09
+ * Last Updated: 2020/08/16
  * 
  * ***************************************************************************/
 
@@ -22,10 +22,10 @@ namespace tictactoe
     ~TicTacToe();
 
     // Get game info
-    char** get_board_data() const { return m_board_data; }
-    unsigned int get_width() const { return m_width; }
-    unsigned int get_height() const { return m_height; }
-    unsigned int get_empty_spaces() const { return m_empty_spaces; }
+    char** get_board_data() const { return board_data_; }
+    unsigned int get_width() const { return widht_; }
+    unsigned int get_height() const { return height_; }
+    unsigned int get_empty_spaces() const { return empty_spaces_; }
 
     void ClearBoard();
 
@@ -43,11 +43,11 @@ namespace tictactoe
 
    private:
     // Size of board
-    unsigned int m_width = 3;
-    unsigned int m_height = 3;
+    unsigned int widht_ = 3;
+    unsigned int height_ = 3;
 
-    unsigned int m_empty_spaces = 9;
+    unsigned int empty_spaces_;
 
-    char** m_board_data;
+    char** board_data_;
   };
 }

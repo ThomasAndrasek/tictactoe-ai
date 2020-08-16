@@ -10,7 +10,7 @@
  * 
  * Author: Thomas Andrasek
  * 
- * Last updated: 2020/08/14
+ * Last updated: 2020/08/16
  * 
  * ***************************************************************************/
 
@@ -19,9 +19,11 @@
 // Creates a blank 3x3 tictactoe board object
 tictactoe::TicTacToe::TicTacToe()
 {
-  m_board_data = new char*[m_width];
-  for (unsigned int i = 0; i < m_width; ++i)
-    m_board_data[i] = new char[m_height];
+  empty_spaces_ = 9;
+
+  board_data_ = new char*[widht_];
+  for (unsigned int i = 0; i < widht_; ++i)
+    board_data_[i] = new char[height_];
 
   ClearBoard();
 }
@@ -31,14 +33,20 @@ tictactoe::TicTacToe::TicTacToe()
 // @param game_state game state of 9 characters
 tictactoe::TicTacToe::TicTacToe(const char* game_state)
 {
-  m_board_data = new char*[3];
+  unsigned int count = 0;
+  for(unsigned int i = 0; i < 9; i++)
+    if(game_state[i] == ' ')
+      ++count;
+  empty_spaces_ = count;
+
+  board_data_ = new char*[3];
 
   for (unsigned int i = 0; i < 3; ++i)
-    m_board_data[i] = new char[3];
+    board_data_[i] = new char[3];
 
   for (unsigned int j = 0; j < 3; ++j)
     for (unsigned int i = 0; i < 3; ++i)
-      m_board_data[i][j] = game_state[j*3+i];
+      board_data_[i][j] = game_state[j*3+i];
 }
 
 // Copies the given TicTacToe object
@@ -46,44 +54,46 @@ tictactoe::TicTacToe::TicTacToe(const char* game_state)
 // @param board the TicTacToe board object to copy
 tictactoe::TicTacToe::TicTacToe(const TicTacToe& board)
 {
-  m_board_data = new char*[m_width];
+  empty_spaces_ = board.get_empty_spaces();
 
-  for (unsigned int i = 0; i < m_width; ++i)
+  board_data_ = new char*[widht_];
+
+  for (unsigned int i = 0; i < widht_; ++i)
   {
-    m_board_data[i] = new char[m_height];
-    for (unsigned int j = 0; j < m_height; ++j)
-      m_board_data[i][j] = board.m_board_data[i][j];
+    board_data_[i] = new char[height_];
+    for (unsigned int j = 0; j < height_; ++j)
+      board_data_[i][j] = board.board_data_[i][j];
   }
 }
 
 // Deconstructor for the TicTacToe object
 tictactoe::TicTacToe::~TicTacToe()
 {
-  for (unsigned int i = 0; i < m_width; ++i)
-    delete [] m_board_data[i];
+  for (unsigned int i = 0; i < widht_; ++i)
+    delete [] board_data_[i];
 
-  delete [] m_board_data;
+  delete [] board_data_;
 }
 
 // Sets all the spots on the board to blank spots.
 void tictactoe::TicTacToe::ClearBoard()
 {
-  for (unsigned int i = 0; i < m_width; ++i)
-    for (unsigned int j = 0; j < m_height; ++j)
-      m_board_data[i][j] = ' ';
+  for (unsigned int i = 0; i < widht_; ++i)
+    for (unsigned int j = 0; j < height_; ++j)
+      board_data_[i][j] = ' ';
 }
 
 // Prints out the current board state.
 void tictactoe::TicTacToe::PrintBoard() const
 {
-  std::cout << " " << m_board_data[0][2] << " | "
-   << m_board_data[1][2] << " | " << m_board_data[2][2] << std::endl;
+  std::cout << " " << board_data_[0][2] << " | "
+   << board_data_[1][2] << " | " << board_data_[2][2] << std::endl;
   std::cout << "-----------" << std::endl;
-  std::cout << " " << m_board_data[0][1] << " | "
-   << m_board_data[1][1] << " | " << m_board_data[2][1] << std::endl;
+  std::cout << " " << board_data_[0][1] << " | "
+   << board_data_[1][1] << " | " << board_data_[2][1] << std::endl;
   std::cout << "-----------" << std::endl;
-  std::cout << " " << m_board_data[0][0] << " | "
-   << m_board_data[1][0] << " | " << m_board_data[2][0] << std::endl;
+  std::cout << " " << board_data_[0][0] << " | "
+   << board_data_[1][0] << " | " << board_data_[2][0] << std::endl;
 }
 
 // Places a token in the given position
@@ -99,14 +109,17 @@ bool tictactoe::TicTacToe::PlaceToken(bool player, unsigned int x,
   if (x >= 3 || y >= 3)
     return false;
 
-  if (m_board_data[x][y] == ' ')
+  if (board_data_[x][y] == ' ')
   {
     if (player)
-      m_board_data[x][y] = 'X';
+      board_data_[x][y] = 'X';
     else
-      m_board_data[x][y] = 'O';
+      board_data_[x][y] = 'O';
 
-    m_empty_spaces--;
+    --empty_spaces_;
+
+    std::cout << empty_spaces_ << std::endl;
+
     return true;
   }
 
@@ -121,38 +134,38 @@ std::pair<bool, char> tictactoe::TicTacToe::CheckForWin() const
 {
   std::pair<bool, char> ret = {false, ' '};
 
-  if (m_board_data[0][0] != ' '
-   && m_board_data[0][0] == m_board_data[1][0]
-   && m_board_data[0][0] == m_board_data[2][0])
-    ret = {true, m_board_data[0][0]};
-  else if (m_board_data[0][1] != ' '
-   && m_board_data[0][1] == m_board_data[1][1]
-   && m_board_data[0][1] == m_board_data[2][1])
-    ret = {true, m_board_data[0][1]};
-  else if (m_board_data[0][2] != ' '
-   && m_board_data[0][2] == m_board_data[1][2]
-   && m_board_data[0][2] == m_board_data[2][2])
-    ret = {true, m_board_data[0][2]};
-  else if (m_board_data[0][0] != ' '
-   && m_board_data[0][0] == m_board_data[0][1]
-   && m_board_data[0][0] == m_board_data[0][2])
-    ret = {true, m_board_data[0][0]};
-  else if (m_board_data[1][0] != ' '
-   && m_board_data[1][0] == m_board_data[1][1]
-   && m_board_data[1][0] == m_board_data[1][2])
-    ret = {true, m_board_data[1][0]};
-  else if (m_board_data[2][0] != ' '
-   && m_board_data[2][0] == m_board_data[2][1]
-   && m_board_data[2][0] == m_board_data[2][2])
-    ret = {true, m_board_data[2][0]};
-  else if (m_board_data[0][0] != ' '
-   && m_board_data[0][0] == m_board_data[1][1]
-   && m_board_data[0][0] == m_board_data[2][2])
-    ret = {true, m_board_data[0][0]};
-  else if (m_board_data[0][2] != ' '
-   && m_board_data[0][2] == m_board_data[1][1]
-   && m_board_data[0][2] == m_board_data[2][0])
-    ret = {true, m_board_data[0][2]};
+  if (board_data_[0][0] != ' '
+   && board_data_[0][0] == board_data_[1][0]
+   && board_data_[0][0] == board_data_[2][0])
+    ret = {true, board_data_[0][0]};
+  else if (board_data_[0][1] != ' '
+   && board_data_[0][1] == board_data_[1][1]
+   && board_data_[0][1] == board_data_[2][1])
+    ret = {true, board_data_[0][1]};
+  else if (board_data_[0][2] != ' '
+   && board_data_[0][2] == board_data_[1][2]
+   && board_data_[0][2] == board_data_[2][2])
+    ret = {true, board_data_[0][2]};
+  else if (board_data_[0][0] != ' '
+   && board_data_[0][0] == board_data_[0][1]
+   && board_data_[0][0] == board_data_[0][2])
+    ret = {true, board_data_[0][0]};
+  else if (board_data_[1][0] != ' '
+   && board_data_[1][0] == board_data_[1][1]
+   && board_data_[1][0] == board_data_[1][2])
+    ret = {true, board_data_[1][0]};
+  else if (board_data_[2][0] != ' '
+   && board_data_[2][0] == board_data_[2][1]
+   && board_data_[2][0] == board_data_[2][2])
+    ret = {true, board_data_[2][0]};
+  else if (board_data_[0][0] != ' '
+   && board_data_[0][0] == board_data_[1][1]
+   && board_data_[0][0] == board_data_[2][2])
+    ret = {true, board_data_[0][0]};
+  else if (board_data_[0][2] != ' '
+   && board_data_[0][2] == board_data_[1][1]
+   && board_data_[0][2] == board_data_[2][0])
+    ret = {true, board_data_[0][2]};
 
   return ret;
 }
@@ -162,7 +175,7 @@ std::pair<bool, char> tictactoe::TicTacToe::CheckForWin() const
 // @return whether or not the board is full
 bool tictactoe::TicTacToe::IsBoardFull() const
 {
-  if (m_empty_spaces == 0)
+  if (empty_spaces_ == 0)
     return true;
 
   return false;
