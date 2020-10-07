@@ -118,8 +118,6 @@ bool tictactoe::TicTacToe::PlaceToken(bool player, unsigned int x,
 
     --empty_spaces_;
 
-    std::cout << empty_spaces_ << std::endl;
-
     return true;
   }
 

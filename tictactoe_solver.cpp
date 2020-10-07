@@ -9,7 +9,7 @@
  * 
  * Author: Thomas Andrasek
  * 
- * Last updated: 2020/08/16
+ * Last updated: 2020/10/05
  * 
  * ***************************************************************************/
 
@@ -17,44 +17,16 @@
 //  
 //  @param board the tic-tac-toe board to copy and make moves on
 //  @param placement the position of the last token placed
-tictactoeai::Node::Node(const tictactoe::TicTacToe &board,
+tictactoeai::Node::Node(tictactoe::TicTacToe *board,
            std::pair<unsigned int, unsigned int> placement)
 {
-  this->board_data_ = new tictactoe::TicTacToe(board);
+  this->board_data_ = board;
   this->placement_ = placement;
   this->child_arr_length_ = 0;
   // Using -1 to indicate the best move position hasn't been chosen yet
   this->best_child_ = -1;
   // Temp game score, using -1337 as a key value
   this->game_score_ = -1337;
-}
-
-// Delete the entire game decision tree from the given root node
-// 
-// @param root the root node of the tree to delete
-void tictactoeai::DeleteTree(Node* root)
-{
-  if (root)
-  {
-    if (root->child_arr_length_ > 0)
-    {
-      if (root->children_)
-      {
-        for (unsigned int i = 0; i < root->child_arr_length_; ++i)
-        {
-          if (root->children_[i])
-            DeleteTree(root->children_[i]);
-          else
-            break;
-        }
-
-        delete [] root->children_;
-      }
-    }
-
-    delete root->board_data_;
-    delete root;
-  }
 }
 
 // Calculates the game score of the given board
@@ -253,7 +225,8 @@ std::pair<unsigned int, unsigned int> tictactoeai::MakePlacementChoice(
     unsigned int move_depth,
     bool player)
 {
-  Node* root = new Node(board, {100,100});
+  tictactoe::TicTacToe *game = new tictactoe::TicTacToe(board);
+  Node* root = new Node(game, {100,100});
 
   if (player)
     CalcMaxChild(root, true, move_depth, INT32_MIN, INT32_MAX);
@@ -263,7 +236,17 @@ std::pair<unsigned int, unsigned int> tictactoeai::MakePlacementChoice(
   std::pair<unsigned int, unsigned int> placement =
    root->children_[root->best_child_]->placement_;
 
-  DeleteTree(root);
+  if (root->children_)
+    {
+      for (unsigned int i = 0; i < root->child_arr_length_; ++i)
+      {
+        delete root->children_[i];
+      }
+
+      delete [] root->children_;
+    }
+
+  delete root;
 
   return placement;
 }
@@ -291,6 +274,10 @@ void tictactoeai::CalcMaxChild(Node* root, bool top_root,
     {
       root->child_arr_length_ = (*root->board_data_).get_empty_spaces();
       root->children_ = new Node*[root->child_arr_length_];
+      for (unsigned int i = 0; i < root->child_arr_length_; ++i)
+      {
+        root->children_[i] = NULL;
+      }
 
       unsigned int child = 0;
       int max = 0;
@@ -301,8 +288,8 @@ void tictactoeai::CalcMaxChild(Node* root, bool top_root,
         {
           if (root->board_data_->get_board_data()[i][j] == ' ')
           {
-            tictactoe::TicTacToe copy(*root->board_data_);
-            copy.PlaceToken(true, i, j);
+            tictactoe::TicTacToe *copy = new tictactoe::TicTacToe(*root->board_data_);
+            copy->PlaceToken(true, i, j);
             root->children_[child] = new Node(copy, {i, j});
             CalcMinChild(root->children_[child], false, move_depth-1, alpha,
                          beta);
@@ -325,13 +312,25 @@ void tictactoeai::CalcMaxChild(Node* root, bool top_root,
           break;
       }
 
-      root->child_arr_length_ = child;
-
       root->game_score_ = root->children_[max]->game_score_;
 
       if (top_root)
         root->best_child_ = max;
     }
+
+    if (root->board_data_)
+        delete root->board_data_;
+
+      if (root->children_ && !top_root)
+      {
+        for (unsigned char i = 0; i < root->child_arr_length_; ++i)
+        {
+          if (root->children_[i])
+            delete root->children_[i];
+        }
+
+        delete [] root->children_;
+      }
   }
 }
 
@@ -358,6 +357,10 @@ void tictactoeai::CalcMinChild(Node* root, bool top_root,
     {
       root->child_arr_length_ = (*root->board_data_).get_empty_spaces();
       root->children_ = new Node*[root->child_arr_length_];
+      for (unsigned int i = 0; i < root->child_arr_length_; ++i)
+      {
+        root->children_[i] = NULL;
+      }
 
       unsigned int child = 0;
       int min = 0;
@@ -368,8 +371,8 @@ void tictactoeai::CalcMinChild(Node* root, bool top_root,
         {
           if (root->board_data_->get_board_data()[i][j] == ' ')
           {
-            tictactoe::TicTacToe copy(*root->board_data_);
-            copy.PlaceToken(false, i, j);
+            tictactoe::TicTacToe *copy = new tictactoe::TicTacToe(*root->board_data_);
+            copy->PlaceToken(true, i, j);
             root->children_[child] = new Node(copy, {i, j});
             CalcMaxChild(root->children_[child], false, move_depth-1, alpha,
                          beta);
@@ -392,12 +395,24 @@ void tictactoeai::CalcMinChild(Node* root, bool top_root,
           break;
       }
 
-      root->child_arr_length_ = child;
-
       root->game_score_ = root->children_[min]->game_score_;
 
       if (top_root)
         root->best_child_ = min;
     }
+
+    if (root->board_data_)
+        delete root->board_data_;
+
+      if (root->children_ && !top_root)
+      {
+        for (unsigned char i = 0; i < root->child_arr_length_; ++i)
+        {
+          if (root->children_[i])
+            delete root->children_[i];
+        }
+
+        delete [] root->children_;
+      }
   }
 }

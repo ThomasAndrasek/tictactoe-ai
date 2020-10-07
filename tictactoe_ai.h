@@ -8,7 +8,7 @@
  * 
  * Author: Thomas Andrasek
  * 
- * Last updated: 2020/08/09
+ * Last updated: 2020/10/05
  * 
  * ***************************************************************************/
 
@@ -18,10 +18,10 @@ namespace tictactoeai
   {
    public:
     // Copy of game board
-    tictactoe::TicTacToe* board_data_;
+    tictactoe::TicTacToe* board_data_ = NULL;
 
     unsigned int child_arr_length_;
-    Node** children_;
+    Node** children_ = NULL;
 
     int game_score_;
 
@@ -31,7 +31,7 @@ namespace tictactoeai
     int best_child_;
 
     // Constructors
-    Node(const tictactoe::TicTacToe &board, 
+    Node(tictactoe::TicTacToe *board, 
          std::pair<unsigned int, unsigned int> placement);
   };
 
@@ -58,6 +58,4 @@ namespace tictactoeai
                     int alpha, int beta);
   void CalcMinChild(Node* root, bool top_root, unsigned int move_depth,
                     int alpha, int beta);
-
-  void DeleteTree(Node* root);
 }
